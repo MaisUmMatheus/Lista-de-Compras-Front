@@ -15,45 +15,49 @@ class _LoginPageState extends State<LoginPage> {
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   String? _errorMessage;
-  bool _showRegisterButton = false; // Controla a exibição do botão de cadastro
+  bool _showRegisterButton = false;
 
-  // Função para realizar o login via API
   Future<void> _login() async {
     final username = _usernameController.text;
     final password = _passwordController.text;
 
     if (username.isNotEmpty && password.isNotEmpty) {
       try {
-        final url =
-            Uri.parse('http://localhost:7057/api/Users/$username/$password');
+        // Nova URL da API
+        final url = Uri.parse(
+            'http://localhost:8080/ListadeCompra/autenticacao/$username/$password');
         final response = await http.get(url);
-        final Map<String, dynamic> responseData = jsonDecode(response.body);
 
         if (response.statusCode == 200) {
+          // Login realizado com sucesso, navega para a lista de compras
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Login realizado com sucesso!')),
           );
 
-          // Navegar para a ShoppingListPage com o userId
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(
-              builder: (context) =>
-                  ShoppingListPage(userId: responseData['id'], userName: responseData['name'], userPassword: responseData['password']),
+              builder: (context) => ShoppingListPage(
+                userName: username, // Usei o username como nome
+                userPassword: password, // Senha enviada
+              ),
             ),
           );
         } else {
+          // Se o status code for diferente de 200, mostra erro
           setState(() {
             _errorMessage = 'Usuário ou senha incorretos';
-            _showRegisterButton = true; // Mostrar o botão de cadastrar
+            _showRegisterButton = true; // Exibe o botão de cadastro
           });
         }
       } catch (e) {
+        // Mostra erro de comunicação com a API
         setState(() {
           _errorMessage = 'Erro ao se comunicar com a API: $e';
         });
       }
     } else {
+      // Se campos estiverem vazios, exibe mensagem
       setState(() {
         _errorMessage = 'Por favor, preencha todos os campos.';
       });
@@ -63,21 +67,21 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.green[50], // Fundo claro
+      backgroundColor: Colors.green[50],
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              // Ícone grande no topo
+              // Ícone no topo
               Icon(
                 Icons.shopping_cart,
                 color: Colors.green,
                 size: 100,
               ),
               const SizedBox(height: 20),
-              // Texto principal
+              // Texto de boas-vindas
               Text(
                 'Bem-vindo ao Lista de Compras!',
                 style: TextStyle(
@@ -96,9 +100,9 @@ class _LoginPageState extends State<LoginPage> {
               ),
               const SizedBox(height: 40),
 
-              // Campo de Usuário com tamanho limitado
+              // Campo de texto do usuário
               SizedBox(
-                width: 300, // Definindo a largura máxima
+                width: 300,
                 child: TextField(
                   controller: _usernameController,
                   decoration: InputDecoration(
@@ -114,9 +118,9 @@ class _LoginPageState extends State<LoginPage> {
               ),
               const SizedBox(height: 20),
 
-              // Campo de Senha com tamanho limitado
+              // Campo de texto da senha
               SizedBox(
-                width: 300, // Definindo a largura máxima
+                width: 300,
                 child: TextField(
                   controller: _passwordController,
                   obscureText: true,
@@ -163,7 +167,7 @@ class _LoginPageState extends State<LoginPage> {
                   ),
                   const SizedBox(width: 10),
 
-                  // Botão de Cadastrar (mostra após uma tentativa falha)
+                  // Botão de Cadastrar (mostra após tentativa falha)
                   if (_showRegisterButton)
                     ElevatedButton(
                       onPressed: () {
